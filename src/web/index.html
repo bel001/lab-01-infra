@@ -3,9 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web 01</title>
+    <title>Frontend Dockerizado</title>
+    <style>
+        :root {
+            --bg: #f5f1e8;
+            --card: #fffdf8;
+            --ink: #1f2937;
+            --muted: #5b6470;
+            --accent: #165dff;
+            --accent-soft: #dbe8ff;
+            --line: #d7d0c4;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, #fff7d6 0, transparent 25%),
+                radial-gradient(circle at bottom right, #d9f4e8 0, transparent 22%),
+                var(--bg);
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        main {
+            width: min(760px, 100%);
+            background: var(--card);
+            border: 2px solid var(--line);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+        }
+
+        .eyebrow {
+            margin: 0;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        h1 {
+            margin: 8px 0 12px;
+            font-size: clamp(2rem, 5vw, 3rem);
+        }
+
+        p {
+            margin: 0 0 16px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-top: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .card h2 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+
+        .label {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .status {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 18px;
+            background: var(--accent-soft);
+            border: 1px solid #bfd3ff;
+        }
+
+        .status.error {
+            background: #ffe3e3;
+            border-color: #ffc0c0;
+        }
+
+        code {
+            font-family: "Fira Code", "Courier New", monospace;
+        }
+    </style>
 </head>
 <body>
-    <h1>WEB01</h1>
+    <main>
+        <p class="eyebrow">Frontend</p>
+        <h1 id="title">Cargando ambiente...</h1>
+        <p id="description">Este frontend detecta el ambiente actual y consulta al backend correspondiente.</p>
+
+        <section class="grid">
+            <article class="card">
+                <h2>Web</h2>
+                <div class="label">Contenedor</div>
+                <div class="value" id="web-container">-</div>
+            </article>
+            <article class="card">
+                <h2>API</h2>
+                <div class="label">Endpoint</div>
+                <div class="value" id="api-endpoint">-</div>
+            </article>
+            <article class="card">
+                <h2>Base de datos</h2>
+                <div class="label">Puerto externo</div>
+                <div class="value" id="db-port">-</div>
+            </article>
+        </section>
+
+        <section class="status" id="status-box">
+            <strong id="status-title">Consultando backend...</strong>
+            <p id="status-text">Esperando respuesta desde la API.</p>
+        </section>
+    </main>
+
+    <script>
+        const environments = {
+            "4001": {
+                name: "localhost",
+                title: "Frontend LOCALHOST",
+                webContainer: "web-localhost-01",
+                apiUrl: `${window.location.protocol}//${window.location.hostname}:4002`,
+                dbPort: "4003",
+            },
+            "5001": {
+                name: "dev",
+                title: "Frontend DEV",
+                webContainer: "web-dev-01",
+                apiUrl: `${window.location.protocol}//${window.location.hostname}:5002`,
+                dbPort: "5003",
+            },
+        };
+
+        const currentPort = window.location.port || "4001";
+        const currentEnv = environments[currentPort] || environments["4001"];
+
+        document.getElementById("title").textContent = currentEnv.title;
+        document.getElementById("description").textContent =
+            `El frontend esta ejecutandose en el ambiente ${currentEnv.name} y consultara la API en ${currentEnv.apiUrl}.`;
+        document.getElementById("web-container").textContent = currentEnv.webContainer;
+        document.getElementById("api-endpoint").textContent = currentEnv.apiUrl;
+        document.getElementById("db-port").textContent = currentEnv.dbPort;
+
+        async function loadBackendStatus() {
+            const statusBox = document.getElementById("status-box");
+            const statusTitle = document.getElementById("status-title");
+            const statusText = document.getElementById("status-text");
+
+            try {
+                const response = await fetch(currentEnv.apiUrl);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "La API respondio con error");
+                }
+
+                statusTitle.textContent = "Backend operativo";
+                statusText.innerHTML =
+                    `API: <code>${data.api}</code><br>` +
+                    `Ambiente: <code>${data.environment}</code><br>` +
+                    `Base de datos: <code>${data.database.name}</code><br>` +
+                    `Hora del servidor MySQL: <code>${data.database.serverTime}</code>`;
+            } catch (error) {
+                statusBox.classList.add("error");
+                statusTitle.textContent = "No se pudo conectar al backend";
+                statusText.textContent = error.message;
+            }
+        }
+
+        loadBackendStatus();
+    </script>
 </body>
 </html>

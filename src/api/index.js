@@ -3,6 +3,7 @@ const { getDatabaseStatus } = require("./db");
 
 const hostname = "0.0.0.0";
 const port = 3000;
+const environment = process.env.APP_ENV || "localhost";
 
 const server = http.createServer(async (_request, response) => {
   try {
@@ -14,6 +15,7 @@ const server = http.createServer(async (_request, response) => {
       JSON.stringify({
         message: "Backend conectado a MySQL",
         api: "api01",
+        environment,
         database: {
           host: process.env.DB_HOST || "db",
           port: Number(process.env.DB_PORT || 3306),

@@ -90,6 +90,7 @@ resource "docker_container" "api" {
   image = docker_image.api.image_id
 
   env = [
+    "APP_ENV=${local.environment}",
     "DB_HOST=db",
     "DB_PORT=3306",
     "DB_NAME=${local.db_name}",
