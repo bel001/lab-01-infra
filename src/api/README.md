@@ -12,6 +12,7 @@ Este modulo corresponde al backend en Node.js del laboratorio.
 
 ## Variables de entorno usadas
 
+- `APP_ENV`
 - `DB_HOST`
 - `DB_PORT`
 - `DB_NAME`
@@ -33,6 +34,7 @@ Cuando el contenedor de la API y el contenedor de MySQL estan levantados, el bac
 {
   "message": "Backend conectado a MySQL",
   "api": "api01",
+  "environment": "localhost",
   "database": {
     "host": "db",
     "port": 3306,
